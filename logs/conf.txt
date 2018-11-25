@@ -1,0 +1,18 @@
+2018.11.25 22:55
+
+--------------------------------------------------------------------------------
+--- 10.238.0.195 : alma-006001-csg-4
+
+config term
+Enter configuration commands, one per line.  End with CNTL/Z.
+alma-006001-csg-4(config)#interface Vlan300
+alma-006001-csg-4(config-if)#no ip address
+alma-006001-csg-4(config-if)#no vrf forwarding
+alma-006001-csg-4(config-if)#vrf forwarding MA
+alma-006001-csg-4(config-if)#ip address 10.10.11.1 255.255.255.252
+alma-006001-csg-4(config-if)#end
+alma-006001-csg-4#
+Building configuration...
+[OK]
+
+

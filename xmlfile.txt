@@ -1,45 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Device-Configuration>
-	<vrf><definition><VRFName>ABIS</VRFName>
-			<ConfigVrf-Configuration>
-				<rd><ASNNnIPAddressNn4BASNNn>9198:920500107</ASNNnIPAddressNn4BASNNn></rd>
-				<address-family><ipv4>
-						<ConfigVrfAf-Configuration>
-							<route-target><export><TargetVPNExtendedCommunity>9198:920500107</TargetVPNExtendedCommunity></export></route-target>
-							<route-target><import><TargetVPNExtendedCommunity>9198:920500007</TargetVPNExtendedCommunity></import></route-target>
-							<exit-address-family></exit-address-family>
-						</ConfigVrfAf-Configuration>
-					</ipv4>
-				</address-family>
-			</ConfigVrf-Configuration>
-		</definition>
-	</vrf>
-	<interface><Param>Vlan1000</Param>
-		<ConfigIf-Configuration>
-			<description><UpTo200CharactersInterface>ABIS BS: AL5236</UpTo200CharactersInterface></description>
-			<vrf><forwarding><VRFName>ABIS</VRFName></forwarding></vrf>
-			<ip><address><IPAddress>10.164.2.177</IPAddress><IPSubnetMask>255.255.255.248</IPSubnetMask></address></ip>
-		</ConfigIf-Configuration>
-	</interface>
-	<interface><Param>Vlan2000</Param>
-		<ConfigIf-Configuration>
-			<description><UpTo200CharactersInterface>/VPN/MTS_ABIS_AL3023/NOR-18462/</UpTo200CharactersInterface></description>
-			<vrf><forwarding><VRFName>ABIS</VRFName></forwarding></vrf>
-			<ip><address><IPAddress>10.165.193.193</IPAddress><IPSubnetMask>255.255.255.240</IPSubnetMask></address></ip>
-		</ConfigIf-Configuration>
-	</interface>
-	<router><bgp>
-			<ConfigRouter-Configuration>
-				<address-family><ipv4><vrf><VPNRoutingForwardingInstanceName>ABIS</VPNRoutingForwardingInstanceName>
-							<ConfigRouterAf-Configuration>
-								<redistribute><connected/></redistribute>
-								<exit-address-family></exit-address-family>
-							</ConfigRouterAf-Configuration>
-						</vrf>
-					</ipv4>
-				</address-family>
-			</ConfigRouter-Configuration>
-		</bgp>
-	</router>
-	<end></end>
+
+
+
+<?xml version="1.0" encoding="UTF-8"?><Device-Configuration xmlns="urn:cisco:xml-pi">
+<vrf><definition><VRFName>ABIS</VRFName>
+<ConfigVrf-Configuration>
+<rd><ASNNnIPAddressNn4BASNNn>9198:920500107</ASNNnIPAddressNn4BASNNn></rd>
+<address-family><ipv4>
+<ConfigVrfAf-Configuration>
+<route-target><export><TargetVPNExtendedCommunity>9198:920500107</TargetVPNExtendedCommunity></export></route-target>
+<route-target><import><TargetVPNExtendedCommunity>9198:920500007</TargetVPNExtendedCommunity></import></route-target>
+<exit-address-family></exit-address-family>
+</ConfigVrfAf-Configuration>
+</ipv4>
+</address-family>
+</ConfigVrf-Configuration>
+</definition>
+</vrf>
+<interface><Param>Vlan300</Param>
+<ConfigIf-Configuration>
+<vrf><forwarding><VRFName>ABIS</VRFName></forwarding></vrf>
+<ip><address><IPAddress>10.10.11.1</IPAddress><IPSubnetMask>255.255.255.252</IPSubnetMask></address></ip>
+</ConfigIf-Configuration>
+</interface>
+<end></end>
 </Device-Configuration>
