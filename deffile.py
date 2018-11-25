@@ -81,12 +81,6 @@ def mconnect(q, username, password):
 '''
 
 
-def configure_device(device):
-
-    for i in device.config:
-        device.configure(i)
-
-
 def write_logs(devices):
 
     count_fconnect = 0
