@@ -65,9 +65,6 @@ def mconnect(q, username, password):
         ping_ma_check(device)
 
         device.commit()
-        if device.ping_ma_status is False:
-            print("{0:17}{1:25}{2:20}".format(device.ip_address, device.hostname, "ping failed"))
-
         device.disconnect()
         q.task_done()
     
@@ -189,7 +186,9 @@ def get_xml(vrf):
     return output
 
 
-def make_config(device, tree, cmd_template):
+def make_config(device, tree):
+
+    cmd_template = "interface {0}\nno ip address\nno vrf forwarding\nvrf forwarding MA\nip address {1} {2}"
 
     for i in tree.findall('interface'):
         vlan = i.find('Param').text
@@ -200,8 +199,7 @@ def make_config(device, tree, cmd_template):
             device.config.append(j)
 
 
-def get_config(device, get_xml, make_config):
-    cmd_template = "interface {0}\nno ip address\nno vrf forwarding\nvrf forwarding MA\nip address {1} {2}"
+def get_config(device, def_xml, def_config):
 
     abis = device.get_abis()
     iub = device.get_iub()
@@ -210,12 +208,12 @@ def get_config(device, get_xml, make_config):
     s1mme = device.get_s1mme()
     x2 = device.get_x2()
 
-    abis_xml = get_xml(abis)
-    iub_xml = get_xml(iub)
-    oam_xml = get_xml(oam)
-    s1u_xml = get_xml(s1u)
-    s1mme_xml = get_xml(s1mme)
-    x2_xml = get_xml(x2)
+    abis_xml = def_xml(abis)
+    iub_xml = def_xml(iub)
+    oam_xml = def_xml(oam)
+    s1u_xml = def_xml(s1u)
+    s1mme_xml = def_xml(s1mme)
+    x2_xml = def_xml(x2)
 
     abis_tree = ET.fromstring(abis_xml)
     iub_tree = ET.fromstring(iub_xml)
@@ -224,12 +222,12 @@ def get_config(device, get_xml, make_config):
     s1mme_tree = ET.fromstring(s1mme_xml)
     x2_tree = ET.fromstring(x2_xml)
 
-    make_config(device, abis_tree, cmd_template)
-    make_config(device, iub_tree, cmd_template)
-    make_config(device, oam_tree, cmd_template)
-    make_config(device, s1u_tree, cmd_template)
-    make_config(device, s1mme_tree, cmd_template)
-    make_config(device, x2_tree, cmd_template)
+    def_config(device, abis_tree)
+    def_config(device, iub_tree)
+    def_config(device, oam_tree)
+    def_config(device, s1u_tree)
+    def_config(device, s1mme_tree)
+    def_config(device, x2_tree)
 
 
 def get_arp(device):
@@ -281,14 +279,16 @@ def get_arp(device):
 def ping_arp(device):
 
     if len(device.arp_ma) is not 0:
-        for i in device.arp_abis:
+        for i in device.arp_ma:
             device.ping_ma_log.append(device.ping_ma(i))
 
 
 def ping_ma_check(device):
 
-    for i in device.arp_ma:
-        if "!" not in i and device.ping_ma_status is True:
-            device.ping_check = False
-        else:
-            pass
+    for i in device.ping_ma_log:
+        for j in i.splitlines():
+            if "Success rate is 0 percent" in j and device.ping_ma_status is True:
+                device.ping_ma_status = False
+
+    if device.ping_ma_status is False:
+        print("{0:17}{1:25}{2:20}".format(device.ip_address, device.hostname, "ping is failed"))

@@ -18,7 +18,7 @@ class NetworkDevice:
         self.ssh_conn = None
 
         self.config = []
-        self.ping_ma_status = True
+        self.ping_ma_status = True          # false - ping is failed
         self.arp_ma = []        # abis + iub + ...
         self.arp_abis = []  # abis arp
         self.arp_iub = []
@@ -35,7 +35,9 @@ class NetworkDevice:
         self.ping_oam_log = []
 
     def connect(self, myusername, mypassword):
-        self.ssh_conn = ConnectHandler(device_type=self.os_type, ip=self.ip_address, username=myusername,
+        self.ssh_conn = ConnectHandler(device_type=self.os_type,
+                                       ip=self.ip_address,
+                                       username=myusername,
                                        password=mypassword)
 
     def disconnect(self):

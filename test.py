@@ -1,10 +1,27 @@
-arp = '''Internet  10.164.2.177            -   a493.4c95.40c0  ARPA   Vlan1000
-Internet  10.164.2.181           17   a08c.f8b9.d9cd  ARPA   Vlan1000
-Internet  10.164.2.200           17   a08c.f8b9.d9cd  ARPA   Vlan1000
-Internet  10.165.193.193          1   a493.4c95.40c0  ARPA   Vlan2000'''
+from pprint import pprint
 
+arp = '''
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.166.13.34, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
+'''
 
-for i in arp.splitlines():
-	arp_list = i.strip().split()
-	if arp_list[2] is not "-":
-		print(arp_list[1])
+arp1 = '''
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.166.13.34, timeout is 2 seconds:
+.!!!!
+Success rate is 75 percent (0/5)
+'''
+
+list1 = []
+
+list1.append(arp)
+list1.append(arp1)
+
+for i in list1:
+	for j in i.splitlines():
+		if "Success rate is 0 percent" in j:
+			print("0 percent")
+		else:
+			print("ok percent") 

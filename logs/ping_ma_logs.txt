@@ -1,7 +1,11 @@
-2018.11.25 22:55
+2018.11.26 15:17
 
 --------------------------------------------------------------------------------
 --- 10.238.0.195 : alma-006001-csg-4
 
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.166.13.34, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
 
 

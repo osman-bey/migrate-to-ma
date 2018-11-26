@@ -1,15 +1,40 @@
-2018.11.25 22:55
+2018.11.26 15:17
 
 --------------------------------------------------------------------------------
 --- 10.238.0.195 : alma-006001-csg-4
 
 config term
 Enter configuration commands, one per line.  End with CNTL/Z.
-alma-006001-csg-4(config)#interface Vlan300
+alma-006001-csg-4(config)#interface Vlan1010
 alma-006001-csg-4(config-if)#no ip address
 alma-006001-csg-4(config-if)#no vrf forwarding
 alma-006001-csg-4(config-if)#vrf forwarding MA
-alma-006001-csg-4(config-if)#ip address 10.10.11.1 255.255.255.252
+alma-006001-csg-4(config-if)#ip address 10.166.3.17 255.255.255.240
+alma-006001-csg-4(config-if)#interface Vlan1011
+alma-006001-csg-4(config-if)#no ip address
+alma-006001-csg-4(config-if)#no vrf forwarding
+alma-006001-csg-4(config-if)#vrf forwarding MA
+alma-006001-csg-4(config-if)#ip address 10.166.8.33 255.255.255.240
+alma-006001-csg-4(config-if)#interface Vlan1012
+alma-006001-csg-4(config-if)#no ip address
+alma-006001-csg-4(config-if)#no vrf forwarding
+alma-006001-csg-4(config-if)#vrf forwarding MA
+alma-006001-csg-4(config-if)#ip address 10.166.13.33 255.255.255.240
+alma-006001-csg-4(config-if)#interface Vlan1014
+alma-006001-csg-4(config-if)#no ip address
+alma-006001-csg-4(config-if)#no vrf forwarding
+alma-006001-csg-4(config-if)#vrf forwarding MA
+alma-006001-csg-4(config-if)#ip address 10.166.23.33 255.255.255.240
+alma-006001-csg-4(config-if)#interface Vlan1013
+alma-006001-csg-4(config-if)#no ip address
+alma-006001-csg-4(config-if)#no vrf forwarding
+alma-006001-csg-4(config-if)#vrf forwarding MA
+alma-006001-csg-4(config-if)#ip address 10.166.18.33 255.255.255.240
+alma-006001-csg-4(config-if)#interface Vlan1015
+alma-006001-csg-4(config-if)#no ip address
+alma-006001-csg-4(config-if)#no vrf forwarding
+alma-006001-csg-4(config-if)#vrf forwarding MA
+alma-006001-csg-4(config-if)#ip address 10.166.28.33 255.255.255.240
 alma-006001-csg-4(config-if)#end
 alma-006001-csg-4#
 Building configuration...
