@@ -54,34 +54,34 @@ def mconnect(q, username, password):
     while True:
         device = q.get()
         qlenth = q.qsize()
-        # try:
-        print("{1:17}{2:25}{0:22}queue length: {3}".format("", device.ip_address, device.hostname, qlenth))
-        device.connect(username, password)
 
-        get_arp(device)
-        get_config(device, get_xml, make_config)
-        device.configure(device.config)
-        ping_arp(device)
-        ping_ma_check(device)
+        try:
+            print("{1:17}{2:25}{0:22}queue length: {3}".format("", device.ip_address, device.hostname, qlenth))
+            device.connect(username, password)
 
-        device.commit()
-        device.disconnect()
-        q.task_done()
-    
-    
-'''
+            get_arp(device)
+            get_config(device, get_xml, make_config)
+            device.configure(device.config)
+            ping_arp(device)
+            ping_ma_check(device)
+
+            device.commit()
+            device.disconnect()
+            q.task_done()
+
         except Exception as err_msg:
             device.fconnect = True
             device.fconnect_msg = err_msg
             print("{0:17}{1:25}{2:20}".format(device.ip_address, device.hostname, "connection failed"))
             q.task_done()
-'''
 
 
 def write_logs(devices):
 
     count_fconnect = 0
     count_commit_error = 0
+    count_ping_ma_error = 0
+
     current_dir = os.getcwd()
     now = datetime.now()
     current_year = now.year
@@ -152,13 +152,17 @@ def write_logs(devices):
             fconn_msg_logs_file.write("--- {} : {}\n\n".format(device.ip_address, device.hostname))
             fconn_msg_logs_file.write("{}\n".format(device.fconnect_msg))
 
+        if device.ping_ma_status is False:
+            count_ping_ma_error += 1
+
+
     conf_logs_file.close()
     fconn_devices_logs_file.close()
     conf_error_devices_logs_file.close()
     fconn_msg_logs_file.close()
     ping_ma_log_file.close()
 
-    return count_fconnect, count_commit_error
+    return count_fconnect, count_commit_error, count_ping_ma_error
 
 
 #######################################################################################
@@ -189,14 +193,18 @@ def get_xml(vrf):
 def make_config(device, tree):
 
     cmd_template = "interface {0}\nno ip address\nno vrf forwarding\nvrf forwarding MA\nip address {1} {2}"
+    vlan_list = ["Vlan" + str(i) for i in range(4001, 4021)]
 
     for i in tree.findall('interface'):
         vlan = i.find('Param').text
         ipaddress = i.find(".//IPAddress").text
         ipsubnetmask = i.find(".//IPSubnetMask").text
-        cmd = cmd_template.format(vlan, ipaddress, ipsubnetmask)
-        for j in cmd.splitlines():
-            device.config.append(j)
+
+        if vlan not in vlan_list:
+            cmd = cmd_template.format(vlan, ipaddress, ipsubnetmask)
+
+            for j in cmd.splitlines():
+                device.config.append(j)
 
 
 def get_config(device, def_xml, def_config):

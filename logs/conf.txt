@@ -1,4 +1,4 @@
-2018.11.26 15:17
+2018.11.26 16:55
 
 --------------------------------------------------------------------------------
 --- 10.238.0.195 : alma-006001-csg-4
@@ -30,11 +30,6 @@ alma-006001-csg-4(config-if)#no ip address
 alma-006001-csg-4(config-if)#no vrf forwarding
 alma-006001-csg-4(config-if)#vrf forwarding MA
 alma-006001-csg-4(config-if)#ip address 10.166.18.33 255.255.255.240
-alma-006001-csg-4(config-if)#interface Vlan1015
-alma-006001-csg-4(config-if)#no ip address
-alma-006001-csg-4(config-if)#no vrf forwarding
-alma-006001-csg-4(config-if)#vrf forwarding MA
-alma-006001-csg-4(config-if)#ip address 10.166.28.33 255.255.255.240
 alma-006001-csg-4(config-if)#end
 alma-006001-csg-4#
 Building configuration...

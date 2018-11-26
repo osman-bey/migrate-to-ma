@@ -35,7 +35,7 @@ for device in devices:
 
 q.join()
 
-count_fconnect, count_commit_error = write_logs(devices)
+count_fconnect, count_commit_error, count_ping_ma_error = write_logs(devices)
 endtime = datetime.now() - starttime
 
 
@@ -46,8 +46,9 @@ endtime = datetime.now() - starttime
 
 print("")
 print("--------------------------------------------------------------")
-print("connection failed: {} commit error: {}\ntotal device number: {}".format(count_fconnect,
-                                                                               count_commit_error,
-                                                                               total_devices))
+print("connection failed: {} commit error: {} ping error: {}\ntotal device number: {}".format(count_fconnect,
+                                                                                              count_commit_error,
+                                                                                              count_ping_ma_error,
+                                                                                              total_devices))
 print("elapsed time: {}".format(endtime))
 print("--------------------------------------------------------------\n")
