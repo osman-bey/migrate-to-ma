@@ -193,7 +193,7 @@ def get_xml(vrf):
 def make_config(device, tree):
 
     cmd_template = "interface {0}\nno ip address\nno vrf forwarding\nvrf forwarding MA\nip address {1} {2}"
-    vlan_list = ["Vlan" + str(i) for i in range(4001, 4021)]
+    vlan_list = ["Vlan" + str(i) for i in range(4000, 4021)]
 
     for i in tree.findall('interface'):
         vlan = i.find('Param').text

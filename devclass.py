@@ -25,7 +25,7 @@ class NetworkDevice:
         self.arp_oam = []
         self.arp_s1u = []
         self.arp_s1mme = []
-        self.arp_oam = []
+        self.arp_x2 = []
         self.ping_ma_log = []
         self.ping_abis_log = []
         self.ping_iub_log = []
