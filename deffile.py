@@ -192,20 +192,51 @@ def get_xml(vrf):
 
 def make_config(device, tree):
 
-    cmd_template = "interface {0}\nno ip address\nno vrf forwarding\nvrf forwarding MA\nip address {1} {2}"
+    cmd_template = "interface {0}\n" \
+                   "no ip address\n" \
+                   "no vrf forwarding\n" \
+                   "vrf forwarding MA\n" \
+                   "ip address {1} {2}"
+
+    cmd_template_helper = "interface {0}\n" \
+                          "{3}\n" \
+                          "no ip address\n" \
+                          "no vrf forwarding\n" \
+                          "vrf forwarding MA\n" \
+                          "ip address {1} {2}\n" \
+                          "{4}"
+
     vlan_list = ["Vlan" + str(i) for i in range(4000, 4021)]
 
-    for i in tree.findall('interface'):
-        vlan = i.find('Param').text
-        ipaddress = i.find(".//IPAddress").text
-        ipsubnetmask = i.find(".//IPSubnetMask").text
+    for inf in tree.findall('interface'):
+
+        nohelper_list = []
+        helper_list = []
+
+        vlan = inf.find('Param').text
 
         if vlan not in vlan_list:
-            cmd = cmd_template.format(vlan, ipaddress, ipsubnetmask)
+            ipaddress = inf.find(".//IPAddress").text
+            ipsubnetmask = inf.find(".//IPSubnetMask").text
+
+            hlp = inf.findall(".//IPDestinationAddress")
+
+            if len(hlp) is 0:
+                cmd = cmd_template.format(vlan, ipaddress, ipsubnetmask)
+            else:
+                for iphlp in hlp:
+                    nohelper_list.append("no ip helper-address {}".format(iphlp.text))
+                    helper_list.append("ip helper-address {}".format(iphlp.text))
+                    nohelper_cmd = "\n".join(nohelper_list)
+                    helper_cmd = "\n".join(helper_list)
+
+                    cmd = cmd_template_helper.format(vlan, ipaddress, ipsubnetmask, nohelper_cmd, helper_cmd)
 
             for j in cmd.splitlines():
                 device.config.append(j)
 
+        else:               # if vlan in 4000-4020
+            pass
 
 def get_config(device, def_xml, def_config):
 
