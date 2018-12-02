@@ -56,8 +56,23 @@ class NetworkDeviceIOS(NetworkDevice):
     def commit(self):
         self.conf_logs.append(self.ssh_conn.send_command('write memory'))
 
-    def get_inf_config(self):
-        return self.ssh_conn.send_command(r'show running-config vrf | section interface')
+    def get_abis(self):
+        return self.ssh_conn.send_command(r'show running-config vrf ABIS | format')
+
+    def get_iub(self):
+        return self.ssh_conn.send_command(r'show running-config vrf IUB | format')
+
+    def get_oam(self):
+        return self.ssh_conn.send_command(r'show running-config vrf OAM | format')
+
+    def get_s1u(self):
+        return self.ssh_conn.send_command(r'show running-config vrf S1U | format')
+
+    def get_s1mme(self):
+        return self.ssh_conn.send_command(r'show running-config vrf S1MME | format')
+
+    def get_x2(self):
+        return self.ssh_conn.send_command(r'show running-config vrf X2 | format')
 
     def show_arp_abis(self):
         return self.ssh_conn.send_command(r'show ip arp vrf ABIS | include Internet')
@@ -78,4 +93,4 @@ class NetworkDeviceIOS(NetworkDevice):
         return self.ssh_conn.send_command(r'show ip arp vrf X2 | include Internet')
 
     def ping_ma(self, arp):
-        return self.ssh_conn.send_command('ping vrf MA {}'.format(arp))
+return self.ssh_conn.send_command('ping vrf MA {}'.format(arp))

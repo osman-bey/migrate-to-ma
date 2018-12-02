@@ -3,13 +3,13 @@ import re
 from datetime import datetime
 from devclass import *
 import os
-# from getpass import getpass
+from getpass import getpass
+import xml.etree.ElementTree as ET
 
 
 #######################################################################################
 # ------------------------------ def function part -----------------------------------#
 #######################################################################################
-
 
 def get_argv(argv):
 
@@ -28,8 +28,8 @@ def get_argv(argv):
 
 def get_user_pw():
 
-    username = "cisco"        # input("Enter login: ")
-    password = "cisco"     # getpass()
+    username = "cisco" #input("Enter login: ")
+    password = "cisco" #getpass()
     print("")
     return username, password
 
@@ -60,10 +60,11 @@ def mconnect(q, username, password):
             device.connect(username, password)
 
             get_arp(device)
-            get_config(device)
+            get_config(device, get_xml, make_config)
             device.configure(device.config)
             ping_arp(device)
             ping_ma_check(device)
+
             device.commit()
             device.disconnect()
             q.task_done()
@@ -154,6 +155,7 @@ def write_logs(devices):
         if device.ping_ma_status is False:
             count_ping_ma_error += 1
 
+
     conf_logs_file.close()
     fconn_devices_logs_file.close()
     conf_error_devices_logs_file.close()
@@ -167,94 +169,104 @@ def write_logs(devices):
 # ------------------------------ test part -------------------------------------------#
 #######################################################################################
 
-rtn_vlan_list = ["Vlan" + str(i) for i in range(4000, 4021)]
+def get_xml(vrf):
+
+    remove_list = []
+    input_list = vrf.splitlines()
+
+    for i in input_list:
+        if "Load for five secs" in i:
+            remove_list.append(i)
+        elif "Time source is NTP" in i:
+            remove_list.append(i)
+        elif i is "":
+            remove_list.append(i)
+
+    for i in remove_list:
+        input_list.remove(i)
+
+    input_list[0] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Device-Configuration>"
+    output = "\n".join(input_list)
+    return output
 
 
-def get_config(device):
-
-    inf_config = device.get_inf_config()
+def make_config(device, tree):
 
     cmd_template = "interface {0}\n" \
                    "no ip address\n" \
                    "no vrf forwarding\n" \
                    "vrf forwarding MA\n" \
-                   "ip address {1}"
+                   "ip address {1} {2}"
 
     cmd_template_helper = "interface {0}\n" \
-                          "{2}\n" \
+                          "{3}\n" \
                           "no ip address\n" \
                           "no vrf forwarding\n" \
                           "vrf forwarding MA\n" \
-                          "ip address {1}\n" \
-                          "{3}"
+                          "ip address {1} {2}\n" \
+                          "{4}"
 
-    allowed_vrf_list = ["ABIS", "IUB", "OAM", "S1U", "S1MME", "X2"]
+    vlan_list = ["Vlan" + str(i) for i in range(4000, 4021)]
 
-    inf_config_list = []
-    inf_count = -1
+    for inf in tree.findall('interface'):
 
-    '''
-    inf_config_list = {
-    vlan : Vlan1000
-    vrf: ABIS
-    ipmask: 10.165.208.193 255.255.255.240
-    hlp: [172.20.17.181, 172.20.17.182]
-    }
-    '''
+        nohelper_list = []
+        helper_list = []
 
-    vlan_pattern = re.compile(r"interface (Vlan\d*)")
-    ip_pattern = re.compile(r"ip address ([0-9.]+\s[0-9.]+)")
-    helper_pattern = re.compile(r"ip helper-address ([0-9.]+)")
-    vrf_pattern = re.compile(r"vrf forwarding (.*)")
+        vlan = inf.find('Param').text
 
-    for line in inf_config.splitlines():
+        if vlan not in vlan_list:
+            ipaddress = inf.find(".//IPAddress").text
+            ipsubnetmask = inf.find(".//IPSubnetMask").text
 
-        if "interface Vlan" in line:
-            inf_count += 1
-            inf_config_list.append({})
+            hlp = inf.findall(".//IPDestinationAddress")
 
-            inf_match = re.search(vlan_pattern, line)
-            if inf_match:
-                inf_config_list[inf_count]["vlan"] = inf_match.group(1)
-
-        else:
-            ip_match = re.search(ip_pattern, line)
-            hlp_match = re.search(helper_pattern, line)
-            vrf_match = re.search(vrf_pattern, line)
-            if ip_match:
-                inf_config_list[inf_count]["ipmask"] = ip_match.group(1)
-            if vrf_match:
-                inf_config_list[inf_count]["vrf"] = vrf_match.group(1)
-            if hlp_match:
-                if inf_config_list[inf_count].get("hlp"):
-                    inf_config_list[inf_count]["hlp"].append(hlp_match.group(1))
-                else:
-                    inf_config_list[inf_count]["hlp"] = []
-                    inf_config_list[inf_count]["hlp"].append(hlp_match.group(1))
-
-    for cfg in inf_config_list:
-
-        if cfg["vlan"] not in rtn_vlan_list and cfg["vrf"] in allowed_vrf_list:
-            if cfg.get("hlp"):
-                nohelper_list = []
-                helper_list = []
-
-                for iphlp in cfg["hlp"]:
-                    nohelper_list.append("no ip helper-address {}".format(iphlp))
-                    helper_list.append("ip helper-address {}".format(iphlp))
-
-                nohelper_cmd = "\n".join(nohelper_list)
-                helper_cmd = "\n".join(helper_list)
-                cmd = cmd_template_helper.format(cfg["vlan"], cfg["ipmask"], nohelper_cmd, helper_cmd)
-                for j in cmd.splitlines():
-                    device.config.append(j)
+            if len(hlp) is 0:
+                cmd = cmd_template.format(vlan, ipaddress, ipsubnetmask)
             else:
-                cmd = cmd_template.format(cfg["vlan"], cfg["ipmask"])
-                for j in cmd.splitlines():
-                    device.config.append(j)
+                for iphlp in hlp:
+                    nohelper_list.append("no ip helper-address {}".format(iphlp.text))
+                    helper_list.append("ip helper-address {}".format(iphlp.text))
+                    nohelper_cmd = "\n".join(nohelper_list)
+                    helper_cmd = "\n".join(helper_list)
+
+                    cmd = cmd_template_helper.format(vlan, ipaddress, ipsubnetmask, nohelper_cmd, helper_cmd)
+
+            for j in cmd.splitlines():
+                device.config.append(j)
 
         else:               # if vlan in 4000-4020
             pass
+
+def get_config(device, def_xml, def_config):
+
+    abis = device.get_abis()
+    iub = device.get_iub()
+    oam = device.get_oam()
+    s1u = device.get_s1u()
+    s1mme = device.get_s1mme()
+    x2 = device.get_x2()
+
+    abis_xml = def_xml(abis)
+    iub_xml = def_xml(iub)
+    oam_xml = def_xml(oam)
+    s1u_xml = def_xml(s1u)
+    s1mme_xml = def_xml(s1mme)
+    x2_xml = def_xml(x2)
+
+    abis_tree = ET.fromstring(abis_xml)
+    iub_tree = ET.fromstring(iub_xml)
+    oam_tree = ET.fromstring(oam_xml)
+    s1u_tree = ET.fromstring(s1u_xml)
+    s1mme_tree = ET.fromstring(s1mme_xml)
+    x2_tree = ET.fromstring(x2_xml)
+
+    def_config(device, abis_tree)
+    def_config(device, iub_tree)
+    def_config(device, oam_tree)
+    def_config(device, s1u_tree)
+    def_config(device, s1mme_tree)
+    def_config(device, x2_tree)
 
 
 def get_arp(device):
@@ -266,49 +278,41 @@ def get_arp(device):
     s1mme_arp_log = device.show_arp_s1mme()
     x2_arp_log = device.show_arp_x2()
 
-    # Internet  10.166.28.33            -   aabb.cc80.2000  ARPA   Vlan4001
-
     for i in abis_arp_log.splitlines():
-        if "Incomplete" not in i:
-            arp_list = i.strip().split()
-            if arp_list[2] is not "-" and arp_list[5] not in rtn_vlan_list:
-                device.arp_abis.append(arp_list[1])
-                device.arp_ma.append(arp_list[1])
+        arp_list = i.strip().split()
+        if arp_list[2] is not "-":
+            device.arp_abis.append(arp_list[1])
+            device.arp_ma.append(arp_list[1])
 
     for i in iub_arp_log.splitlines():
-        if "Incomplete" not in i:
-            arp_list = i.strip().split()
-            if arp_list[2] is not "-" and arp_list[5] not in rtn_vlan_list:
-                device.arp_iub.append(arp_list[1])
-                device.arp_ma.append(arp_list[1])
+        arp_list = i.strip().split()
+        if arp_list[2] is not "-":
+            device.arp_iub.append(arp_list[1])
+            device.arp_ma.append(arp_list[1])
 
     for i in oam_arp_log.splitlines():
-        if "Incomplete" not in i:
-            arp_list = i.strip().split()
-            if arp_list[2] is not "-" and arp_list[5] not in rtn_vlan_list:
-                device.arp_oam.append(arp_list[1])
-                device.arp_ma.append(arp_list[1])
+        arp_list = i.strip().split()
+        if arp_list[2] is not "-":
+            device.arp_oam.append(arp_list[1])
+            device.arp_ma.append(arp_list[1])
 
     for i in s1u_arp_log.splitlines():
-        if "Incomplete" not in i:
-            arp_list = i.strip().split()
-            if arp_list[2] is not "-" and arp_list[5] not in rtn_vlan_list:
-                device.arp_s1u.append(arp_list[1])
-                device.arp_ma.append(arp_list[1])
+        arp_list = i.strip().split()
+        if arp_list[2] is not "-":
+            device.arp_s1u.append(arp_list[1])
+            device.arp_ma.append(arp_list[1])
 
     for i in s1mme_arp_log.splitlines():
-        if "Incomplete" not in i:
-            arp_list = i.strip().split()
-            if arp_list[2] is not "-" and arp_list[5] not in rtn_vlan_list:
-                device.arp_s1mme.append(arp_list[1])
-                device.arp_ma.append(arp_list[1])
+        arp_list = i.strip().split()
+        if arp_list[2] is not "-":
+            device.arp_s1mme.append(arp_list[1])
+            device.arp_ma.append(arp_list[1])
 
     for i in x2_arp_log.splitlines():
-        if "Incomplete" not in i:
-            arp_list = i.strip().split()
-            if arp_list[2] is not "-" and arp_list[5] not in rtn_vlan_list:
-                device.arp_x2.append(arp_list[1])
-                device.arp_ma.append(arp_list[1])
+        arp_list = i.strip().split()
+        if arp_list[2] is not "-":
+            device.arp_x2.append(arp_list[1])
+            device.arp_ma.append(arp_list[1])
 
 
 def ping_arp(device):
