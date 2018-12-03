@@ -28,8 +28,8 @@ def get_argv(argv):
 
 def get_user_pw():
 
-    username = "cisco"        # input("Enter login: ")
-    password = "cisco"     # getpass()
+    username = "cisco"      # input("Enter login: ")
+    password = "cisco"      # getpass()
     print("")
     return username, password
 
@@ -54,25 +54,43 @@ def mconnect(q, username, password):
     while True:
         device = q.get()
         qlenth = q.qsize()
+        tries = 2
+        for i in range(tries):
+            try:
+                print("{ip:17}{host:25}{comment:22}queue length: {qlen}\r".format(ip=device.ip_address,
+                                                                                  host=device.hostname,
+                                                                                  qlen=qlenth,
+                                                                                  comment=""))
+                device.connect(username, password)
+                get_arp(device)
+                get_config(device)
+                device.configure(device.config)
+                ping_arp(device)
+                ping_ma_check(device)
+                device.commit()
+                device.disconnect()
+                q.task_done()
+                print("{ip:17}{host:25}{comment:22}queue length: {qlen}\r".format(ip=device.ip_address,
+                                                                                  host=device.hostname,
+                                                                                  qlen=qlenth,
+                                                                                  comment="done"))
 
-        try:
-            print("{1:17}{2:25}{0:22}queue length: {3}".format("", device.ip_address, device.hostname, qlenth))
-            device.connect(username, password)
+            except Exception as err_msg:
+                if i < tries - 1:
+                    print("{ip:17}{host:25}{comment:19}{tries:<3}queue length: {qlen}\r".format(ip=device.ip_address,
+                                                                                                host=device.hostname,
+                                                                                                qlen=qlenth,
+                                                                                                comment="attempt no:",
+                                                                                                tries=(i+2)))
+                    continue
 
-            get_arp(device)
-            get_config(device)
-            device.configure(device.config)
-            ping_arp(device)
-            ping_ma_check(device)
-            device.commit()
-            device.disconnect()
-            q.task_done()
+                else:
+                    device.fconnect = True
+                    device.fconnect_msg = err_msg
+                    print("{0:17}{1:25}{2:20}".format(device.ip_address, device.hostname, "connection failed"))
+                    q.task_done()
 
-        except Exception as err_msg:
-            device.fconnect = True
-            device.fconnect_msg = err_msg
-            print("{0:17}{1:25}{2:20}".format(device.ip_address, device.hostname, "connection failed"))
-            q.task_done()
+            break
 
 
 def write_logs(devices):
@@ -326,4 +344,4 @@ def ping_ma_check(device):
                 device.ping_ma_status = False
 
     if device.ping_ma_status is False:
-        print("{0:17}{1:25}{2:20}".format(device.ip_address, device.hostname, "ping is failed"))
+        print("{:89}{}\r".format("", "ping is failed"))
