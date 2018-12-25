@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from devclass import *
 import os
-# from getpass import getpass
+from getpass import getpass
 
 
 #######################################################################################
@@ -70,9 +70,6 @@ def mconnect(q, username, password):
                 device.commit()
                 device.disconnect()
                 q.task_done()
-                print("{ip:17}{host:25}{comment:22}".format(ip=device.ip_address,
-                                                            host=device.hostname,
-                                                            comment="done"))
 
             except Exception as err_msg:
                 if i < tries - 1:
@@ -342,4 +339,4 @@ def ping_ma_check(device):
                 device.ping_ma_status = False
 
     if device.ping_ma_status is False:
-        print("{:89}{}".format("", "ping is failed"))
+        print("{0:17}{1:25}{2:20}".format(device.ip_address, device.hostname, "ping is failed"))
